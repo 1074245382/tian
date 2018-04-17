@@ -1,11 +1,10 @@
 <?php
 namespace backend\controllers;
-
+header('content-type:text/html;charset=utf-8');
 use Yii;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
-use app\models\Post;
 /**
  * Site controller
  */
@@ -18,8 +17,8 @@ class LoginController extends Controller
         * 登陆页面
         */
     public $enableCsrfValidation = false;
-    public $layout = false;
-    public function actionLogin()
+	public $layout = false;
+	  public function actionLogin()
     {
         return $this->render('login');
     }
@@ -41,4 +40,5 @@ class LoginController extends Controller
         }
     }
 
+  
 }

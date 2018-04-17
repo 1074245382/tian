@@ -17,34 +17,32 @@ use yii\widgets\ActiveForm;
  <div class="wrap">
   <div class="page-title">
     <span class="modular fl"><i class="user"></i><em>管理员列表</em></span><br>
-    <?php $form = ActiveForm::begin(['method'=>'get','action'=>['admin/admin_list']]);?>
-                                    <?php echo Html::input('text','admin_name',\Yii::$app->request->get('admin_name'),['placeholder'=>'输入要搜索的用户名'])?>
+    <?php $form = ActiveForm::begin(['method'=>'get','action'=>['log/log_list']]);?>
+                                    <?php echo Html::input('text','name',\Yii::$app->request->get('name'),['placeholder'=>'输入要搜索的用户名'])?>
                                     <?php echo Html::submitButton('搜索',['class'=>'tdBtn']);?>
   <?php $form->end();?>
-    <span class="modular fr"><a href="http://www.ht.com/index.php?r=admin/add_admin" class="pt-link-btn">+添加管理员</a></span>
   </div>
   <table class="list-style Interlaced">
    <tr>
-    <th>管理员id</th>
-    <th>管理员账号</th>
-    <th>操作</th>
+    <th>id</th>
+    <th>操作内容</th>
+    <th>操作时间</th>
+    <th>操作人</th>
+    <th>ip</th>
    </tr>
   <?php foreach($arr as $k=>$v){?>
    <tr>
     <td><?php echo $v['admin_id']?></td>
-    <td><?php echo $v['admin_name']?></td>
-    <td class="center">
-    
-    <!--  <a href="edit_product.html" title="编辑"><img src="images/icon_edit.gif"/></a> -->
-      <a href="index.php?r=admin/admin_del&admin_id=<?php echo $v['admin_id']?>"  title="删除"><img src="images/icon_drop.gif"/></a>
-    
-    </td>
+    <td><?php echo $v['conment']?></td>
+    <td><?php echo date('Y-m-d H:i:s',$v['add_time']);?></td>
+    <td><?php echo $v['name']?></td>
+    <td><?php echo $v['ip']?></td>
    </tr>
    <?php }?>
 
   </table>
   <div class="turnPage center fr">
-      <?= LinkPager::widget([ 
+       <?= LinkPager::widget([ 
     'pagination' => $pagination, 
     'nextPageLabel' => '下一页', 
     'prevPageLabel' => '上一页',

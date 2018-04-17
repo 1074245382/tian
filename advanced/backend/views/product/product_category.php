@@ -5,6 +5,10 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link href="style/adminStyle.css" rel="stylesheet" type="text/css" />
 </head>
+<script type="text/javascript" src="../js/js.js"></script>
+<script type="text/javascript">
+  alert($);
+</script>
 <body>
  <div class="wrap">
   <div class="page-title">
@@ -14,14 +18,11 @@
   
   <table class="list-style">
    <tr>
+    <th>分类ID</th>
     <th>分类名称</th>
-    <th>产品数量</th>
-    <th>单位</th>
-    <th>是否显示</th>
-    <th>排序</th>
     <th>操作</th>
    </tr>
-   <tr>
+   <!-- <tr>
     <td>
      <input type="checkbox"/>
      <span>西餐</span>
@@ -31,20 +32,19 @@
     <td class="center"><img src="images/yes.gif"/></td>
     <td class="center"><input type="text" value="0" style="width:50px;text-align:center;"/></td>
     <td class="center"><a class="block" title="移除"><img src="images/icon_trash.gif"/></a></td>
-   </tr>
-   <tr>
-    <td style="text-indent:2em;">
-     <input type="checkbox"/>
-     <span>面包</span>
-    </td>
-    <td class="center">3</td>
-    <td class="center">盘</td>
-    <td class="center"><img src="images/no.gif"/></td>
-    <td class="center"><input type="text" value="0" style="width:50px;text-align:center;"/></td>
-    <td class="center"><a class="block" title="移除"><img src="images/icon_trash.gif"/></a></td>
-   </tr>
+   </tr> -->
+    <?php foreach ($data as $k => $v){  ?>
+     <tr>
+       <td align="center"><?php echo $v['classify_id']?></td>
+       <td align="center"><?=str_repeat("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",substr_count($v['path'], "-")) ?><?php echo $v['classify_name']?></td>
+       <td align="center">
+          <a href="index.php?r=product/classifcation_del&id=<?php echo $v['classify_id']?>"  title="删除"><img src="images/icon_drop.gif"/></a>
+      </td>
+    </tr>
+    <?php } ?>
+
    
-   <tr>
+   <!-- <tr>
     <td>
      <input type="checkbox"/>
      <span>西餐</span>
@@ -65,23 +65,23 @@
     <td class="center"><img src="images/no.gif"/></td>
     <td class="center"><input type="text" value="0" style="width:50px;text-align:center;"/></td>
     <td class="center"><a class="block" title="移除"><img src="images/icon_trash.gif"/></a></td>
-   </tr>
+   </tr> -->
   </table>
   
   <!-- BatchOperation -->
   <div style="overflow:hidden;">
       <!-- Operation -->
-	  <div class="BatchOperation fl">
+	  <!-- <div class="BatchOperation fl">
 	   <input type="checkbox" id="del"/>
 	   <label for="del" class="btnStyle middle">全选</label>
 	   <input type="button" value="批量删除" class="btnStyle"/>
-	  </div>
+	  </div> -->
 	  <!-- turn page -->
-	  <div class="turnPage center fr">
+	  <!-- <div class="turnPage center fr">
 	   <a>第一页</a>
 	   <a>1</a>
 	   <a>最后一页</a>
-	  </div>
+	  </div> -->
   </div>
  </div>
 </body>
