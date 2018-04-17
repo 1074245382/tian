@@ -17,23 +17,19 @@ use yii\widgets\ActiveForm;
  <div class="wrap">
   <div class="page-title">
     <span class="modular fl"><i></i><em>产品列表</em></span>
-    <span class="modular fr"><a href="http://www.ht.com/index.php?r=product/edit_product" class="pt-link-btn">+添加商品</a></span>
+    <span class="modular fr"><a href="http://www.ht.com/index.php?r=brand/add_brand" class="pt-link-btn">+添加品牌</a></span>
   </div>
   <div class="operate">
-   <?php $form = ActiveForm::begin(['method'=>'get','action'=>['product/product_list']]);?>
-                                    <?php echo Html::input('text','goods_name',\Yii::$app->request->get('goods_name'),['placeholder'=>'输入要搜索的用户名'])?>
+    <?php $form = ActiveForm::begin(['method'=>'get','action'=>['brand/brand_list']]);?>
+                                    <?php echo Html::input('text','brand_name',\Yii::$app->request->get('brand_name'),['placeholder'=>'输入要搜索的用户名'])?>
                                     <?php echo Html::submitButton('搜索',['class'=>'tdBtn']);?>
   <?php $form->end();?>
   </div>
   <table class="list-style Interlaced">
    <tr>
     <th>ID编号</th>
-    <th>商品名称</th>
-    <th>商品价格</th>
-    <th>分类ID</th>
-    <th>品牌ID</th>
-    <th>是否热卖</th>
-    <th>添加时间</th>
+    <th>品牌名称</th>
+    <th>品牌logo</th>
     <th>操作</th>
    </tr>
     <?php foreach($arr as $k=>$v){?>
@@ -41,43 +37,20 @@ use yii\widgets\ActiveForm;
     <td>
      <span>
      <input type="checkbox" class="middle children-checkbox"/>
-     <i><?php echo $v['goods_id']?></i>
+     <i><?php echo $v['brand_id']?></i>
      </span>
     </td>
-    <td class="center pic-area"><?php echo $v['goods_name']?></td>
+    <td class="center"><?php echo $v['brand_name']?></td>
     <td class="td-name">
-      <span class="ellipsis td-name block"><?php echo $v['goods_price']?></span>
+      <span class="ellipsis td-name block"><img src="<?= Url::to('@web/'.$v['brand_logo']);?>"width="50" height="50"></span>
     </td>
-    <td class="center">
-     <span>
-     
-      <em><?php echo $v['classify_id']?></em>
-     </span>
-    </td>
-    <td class="center">
-     <span>
-     
-      <em><?php echo $v['brand_id']?></em>
-     </span>
-    </td>
-    <td class="center">
-     <span>
-      <em><?php echo $v['is_hot']?></em>
-     
-     </span>
-    </td>
-     <td class="center">
-     <span>
-      <em><?php echo $v['time']?></em>
-   
-     </span>
-    </td>
+    
     
     <td class="center">
     
-     <a href="edit_product.html" title="编辑"><img src="images/icon_edit.gif"/></a>
+     <!-- <a href="edit_product.html" title="编辑"><img src="images/icon_edit.gif"/></a> -->
+      <a href="index.php?r=brand/brand_del&brand_id=<?php echo $v['brand_id']?>"  title="删除"><img src="images/icon_drop.gif"/></a>
     
-     <a href="index.php?r=product/goods_del&goods_id=<?php echo $v['goods_id']?>"  title="删除"><img src="images/icon_drop.gif"/></a>
     </td>
     
    </tr>
@@ -90,14 +63,14 @@ use yii\widgets\ActiveForm;
 	 
 	  <!-- turn page -->
 	  <div class="turnPage center fr">
-      <?= LinkPager::widget([ 
+	    <?= LinkPager::widget([ 
     'pagination' => $pagination, 
     'nextPageLabel' => '下一页', 
     'prevPageLabel' => '上一页',
     'firstPageLabel' => '首页', 
     'lastPageLabel' => '尾页',  
 ]); ?>
-    </div>
+	  </div>
   </div>
  </div>
 </body>

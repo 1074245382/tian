@@ -5,229 +5,185 @@ use Yii;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
-use app\models\Post;
-use app\models\Get;
+use yii\data\Pagination;
+use app\models\Country;
+use app\models\goods;
+use app\models\classify;
+use app\models\log;
 /**
  * Site controller
  */
 class ProductController extends Controller
 {
     
-    public $enableCsrfValidation = false;
-	public $layout = false;
+ //    public $enableCsrfValidation = false;
+	// public $layout = false;
 	    //商品列表
 	   public function actionProduct_list()
-	   {
-	   	  $res = Yii::$app->db->createCommand("select * from goods,classify,brand where goods.classify_id = classify.classify_id and goods.brand_id = brand.brand_id")->queryAll();
-	   	  
-	   	  return $this->render('product_list',array('data'=>$res));
+	   {  
+          $session = Yii::$app->session;
+          $name = $session->get('admin_name');
+	   	  $model = new goods();
+          $reach = $model::find();
+        //判断搜索语句
+        if($keywords = Yii::$app->request->get('goods_name')){
+             
+            $reach->where(['like','goods_name',$keywords]);
+        }
+        $pagination = new Pagination([
+        'defaultPageSize' => 3,//每页显示多少
+        'totalCount' => $reach->count(),//总数据数
+        ]);
+
+
+        $list = $reach
+                    ->offset($pagination->offset)
+                    ->limit($pagination->limit)
+                    ->asArray()
+                    ->all();
+                    // echo $list->createCommand()->getRawSql();die;
+        // var_dump($list);die;
+        if ($list) {
+            $model = new log;
+            $d = time();
+            $da = $name; 
+            $dat = $_SERVER['REMOTE_ADDR'];
+            $j = "查看商品列表";
+            // $sql = $model->save();
+            $a = YII::$app->db->createCommand("insert into log (add_time,name,ip,conment) values ('$d','$da','$dat','$j')")->execute();
+            // var_dump($data);die;
+            // var_dump($sql);die;
+            if ($a) {
+                return $this->render('product_list',['arr'=>$list,
+                                        'pagination'=>$pagination,
+                                    ]);
+            }else{
+                echo "管理员管理查看失败";
+            }
+        }else{
+                echo "查看失败";
+        }
 	   }
+	   //商品删除
+    public function actionGoods_del()
+    {
+        $goods_id=Yii::$app->request->get('goods_id');
+        $res = \Yii::$app->db->createCommand()->delete('goods', "goods_id=".$goods_id)->execute();
+        if($res){
+            echo "<script>alert('删除成功');location.replace(document.referrer);</script>";
+        }else{
+            echo "<script>alert('删除失败');location.replace(document.referrer)</script>";
+        }
+    }
 	     //商品分类
 	   public function actionProduct_category()
 	   {
-	   	  return $this->render('product_category');
+            $session = Yii::$app->session;
+            $name = $session->get('admin_name');
+           // var_dump($admin_name);die;
+           $data = YII::$app->db->createCommand("select *,CONCAT(path,'-',classify_id) as new_path from classify ORDER BY new_path")->queryAll();
+            // return $this->render("product_category",array('data'=>$data));
+           if ($data) {
+            $model = new log;
+            $d = time();
+            $da = $name; 
+            $dat = $_SERVER['REMOTE_ADDR'];
+            $j = "商品分类查看";
+            // $sql = $model->save();
+            $a = YII::$app->db->createCommand("insert into log (add_time,name,ip,conment) values ('$d','$da','$dat','$j')")->execute();
+            // var_dump($data);die;
+            // var_dump($sql);die;
+            if ($a) {
+                return $this->render("product_category",array('data'=>$data));
+            }else{
+                echo "商品分类查看失败";
+            }
+        }else{
+                echo "查看失败";
+        }
+           // var_dump($data);exit;
+          // return $this->render("",array('data'=>$data));
+	   	 
 	   }
+        //删除分类
+        public function actionCate_del()
+       {
+          return $this->render('edit_product');
+       }
 	   //添加商品
 	  public function actionEdit_product()
 	   {
-	   	  $all = YII::$app->db->createCommand("select * from classify")->queryAll();
-	   	  $str_fu = YII::$app->db->createCommand("select * from classify where classify_pid = 0")->queryAll();
-	   	  
-	   	  $str_zi = array();
-
-			foreach($all as $key=>$value){
-				// var_dump($value);
-				foreach($str_fu as $k=>$v){
-					// var_dump($value['parent_id']);
-					if($v['classify_id'] == $value['classify_pid']){
-						 array_push($str_zi,$value);
-					}
-				}
-			}
-		  $brand = YII::$app->db->createCommand("select * from brand")->queryAll();
-			// var_dump($str_zi);
-	   	  return $this->render('edit_product', [
-	            'str_fu' => $str_fu,
-	            'str_zi' => $str_zi,
-	            'brand' => $brand
-       		]);
+	   	  return $this->render('edit_product');
 	   }
-	  public function actionEdit_product_do(){
-	  	  $data = Yii::$app->request->post();
-	  	  $time = date('Y-m-d H:i:s');
-	  	  // var_dump($data);die;
-	  	  $res = YII::$app->db->createCommand()->insert('goods',array(
-	  	  	'goods_name'=>$data['goods_name'],
-	  	  	'goods_price'=>$data['goods_price'],
-	  	  	'classify_id'=>$data['classify_id'],
-	  	  	'brand_id'=>$data['brand_id'],
-	  	  	'is_hot'=>$data['is_hot'],
-	  	  	'time'=>$time
-	  	  	))->execute();
-	  	  
-	  	  if ($res) {
-		     Yii::$app->getSession()->setFlash('success','添加成功');
-		  } else {
-		     Yii::$app->getSession()->setFlash('error','添加失败');
-		  }
-		  return $this->redirect(array('product/product_sku','goods_name'=>$data['goods_name'],'classify_id'=>$data['classify_id']));
-	  }
-	  //添加商品规格
-	  public function actionProduct_sku()
-	   {
-	   	  $data = Yii::$app->request->get();
-	   	  $goods_name = $data['goods_name'];
-			
-	   	  $goods = YII::$app->db->createCommand("select * from goods where goods_name='$goods_name'")->queryAll();
-		
-	   	  $classify_id = $data['classify_id'];
-	   	  // var_dump($classify_id);die;
-	   	  $attr_fu = Yii::$app->db->createCommand("select * from attribute where classify_id = $classify_id")->queryAll();
-	   	  
-
-	   	  // foreach ($attr_fu as $key => $value) {
-	   	  // 	$attribute_id[] = $value['attribute_id'];
-	   	  // 			foreach ($attribute_id  as $k => $v) {
-	   	  // 				$attr_zi[] = Yii::$app->db->createCommand("select * from attr where attribute_id = $v")->queryAll();
-	   	  // 			}
-	   	  // }
-	   	  $attr = Yii::$app->db->createCommand("select * from attribute,attr where attribute.classify_id = $classify_id and attribute.attribute_id = attr.attribute_id")->queryAll();
-	   	  $attr_zi = array();
-	   	  foreach($attr as $key=>$value){
-				foreach($attr_fu as $k=>$v){
-					// var_dump($v['attribute_id']);
-					if($v['attribute_id'] == $value['attribute_id']){
-						 array_push($attr_zi,$value);
-					}
-				}
-			}
-	   	  // $attribute_id = array_column($attr, 'attribute_id');
-			// var_dump($str_zi);die;
-	   	  // $type = Yii::$app->db->createCommand("select * from type")->queryAll();
-	   	  return $this->render('product_sku',array('goods' => $goods,'attr_fu'=>$attr_fu,'attr_zi'=>$attr_zi));
-	   }
-	  public function actionProduct_sku_do(){
-	  	$data = Yii::$app->request->post();
-	  	// var_dump($data);die;
-	  	$attr_id = implode(",",$data['attr_id']);
-	  	// var_dump($attr_id);die;
-	  	$res = YII::$app->db->createCommand()->insert('sku',array(
-	  	  	'goods_id'=>$data['goods_id'],
-	  	  	'sku_price'=>$data['sku_price'],
-	  	  	'stock'=>$data['stock'],
-	  	  	'sku'=>$attr_id
-	  	  	))->execute();
-	  	if($res){
-	  		Yii::$app->getSession()->setFlash('success','添加成功');
-	  	}else{
-	  		Yii::$app->getSession()->setFlash('error','添加失败');
-	  	}
-	  	return $this->redirect(array('product/product_list'));
-	  
-	  }
 	    //添加分类
 	  public function actionAdd_category()
-	   {
-	   	  return $this->render('add_category');
+	   { 
+         $data = YII::$app->db->createCommand("select *,CONCAT(path,'-',classify_id) as new_path from classify ORDER BY new_path")->queryAll();
+           // var_dump($data);exit;
+          return $this->render("add_category",array('data'=>$data));
+      
+ 	   	
 	   }
-	   //添加属性
-	   public function actionAdd_attribute()
-	   {
-	   	  $all = YII::$app->db->createCommand("select * from classify")->queryAll();
-	   	  $str_fu = YII::$app->db->createCommand("select * from classify where classify_pid = 0")->queryAll();
-	   	  
-	   	  $str_zi = array();
-
-			foreach($all as $key=>$value){
-				// var_dump($value);
-				foreach($str_fu as $k=>$v){
-					// var_dump($value['parent_id']);
-					if($v['classify_id'] == $value['classify_pid']){
-						 array_push($str_zi,$value);
-					}
-				}
-			}
-			// var_dump($str_zi);
-	   	  return $this->render('add_attribute', [
-	            'str_fu' => $str_fu,
-	            'str_zi' => $str_zi
-       		]);
-	   }
-	   public function actionAdd_attribute_do(){
-			$data = Yii::$app->request->post();
-			$res = YII::$app->db->createCommand()->insert('attribute',array(
-	  	  	'classify_id'=>$data['classify_id'],
-	  	  	'attribute_name'=>$data['attribute_name']
-	  	  	))->execute();
-	  	  	if($res){
-	  	  		Yii::$app->getSession()->setFlash('success','添加成功');
-	  	  	}else{
-	  	  		Yii::$app->getSession()->setFlash('error','添加失败');
-	  	  	}
-	  	  	return $this->redirect(array('product/add_attribute'));
-	   }
-	   //添加属性值
-	  public function actionAdd_attr(){
-	  		$attribute = YII::$app->db->createCommand("select * from attribute")->queryAll();
-
-	  		return $this->render('add_attr',[
-	            'attribute' => $attribute
-       		]);
-	  }
-	  public function actionAdd_attr_do(){
-	  		$data = Yii::$app->request->post();
-	  		$res = YII::$app->db->createCommand()->insert('attr',array(
-	  	  	'attribute_id'=>$data['attribute_id'],
-	  	  	'attr_value'=>$data['attr_name']
-	  	  	))->execute();
-	  	  	if($res){
-	  	  		Yii::$app->getSession()->setFlash('success','添加成功');
-	  	  	}else{
-	  	  		Yii::$app->getSession()->setFlash('error','添加失败');
-	  	  	}
-	  	  	return $this->redirect(array('product/add_attr'));
-	  }
-	  public function actionProduct_sku_update(){
-	  	  $data = Yii::$app->request->get();
-	   	  $goods_name = $data['goods_name'];
-			
-	   	  $goods = YII::$app->db->createCommand("select * from goods where goods_name='$goods_name'")->queryAll();
-		
-	   	  $classify_id = $data['classify_id'];
-	   	  // var_dump($classify_id);die;
-	   	  $attr_fu = Yii::$app->db->createCommand("select * from attribute where classify_id = $classify_id")->queryAll();
-	   	  $attr = Yii::$app->db->createCommand("select * from attribute,attr where attribute.classify_id = $classify_id and attribute.attribute_id = attr.attribute_id")->queryAll();
-	   	  $attr_zi = array();
-	   	  foreach($attr as $key=>$value){
-				foreach($attr_fu as $k=>$v){
-					// var_dump($v['attribute_id']);
-					if($v['attribute_id'] == $value['attribute_id']){
-						 array_push($attr_zi,$value);
-					}
-				}
-			}
-		  return $this->render('product_sku_update',array('goods' => $goods,'attr_fu'=>$attr_fu,'attr_zi'=>$attr_zi));
-	  }
-	  public function actionProduct_sku_update_do(){
-	  	$data = Yii::$app->request->post();
-	  	$attr_id = implode(",",$data['attr_id']);
-	  	$res = YII::$app->db->createCommand()->update('sku',array(
-	  	  	'sku_price'=>$data['sku_price'],
-	  	  	'stock'=>$data['stock'],
-	  	  	'sku'=>$attr_id
-	  	  	),'goods_id='.$data['goods_id'])->execute();
-
-	  	if($res){
-	  		Yii::$app->getSession()->setFlash('success','修改成功');
-	  	}else{
-	  		Yii::$app->getSession()->setFlash('error','修改失败');
-	  	}
-	  	return $this->redirect(array('product/product_list'));
-	  
-	  }
 	   //商品回收站
 	    public function actionRecycle_bin()
 	   {
 	   	  return $this->render('recycle_bin');
 	   }
+       //添加分类
+    public function actionAdd_classifcation(){
+        $re = YII::$app->db->createCommand("select *,CONCAT(path,'-',cate_id) as new_path from cate ORDER BY new_path")->queryAll();
+        // var_dump($res);die;
+        return $this->render("add_classifcation",array('re'=>$re));
+    }
+    //添加分类
+    public function actionAdd_classifcation_do(){
+        $db = new classify;
+        $data = yii::$app->request->post();
+        // ar_dump($data);die;
+        if($data['classify_id']==0){
+            $a= $data['classify_name'];
+            $res = Yii::$app->db->createCommand("insert into classify (classify_name,classify_pid,path) values ('$a','0','0')")->execute();
+             echo "<script>alert('添加成功');location.href='?r=product/product_category'</script>";
+            // return $this->render("add_classifcation");
+        }else{
+            $classify_id = $data['classify_id'];
+            // var_dump($parent_id);die;
+            $res = classify::find()->where("classify_id = '$classify_id'")->asArray()->one();
+            // var_dump($res);die;
+            $classify_pid = $res['classify_pid'];
+            $path = $res['path'];
+            // var_dump($path);die;
+            $db->classify_name = $data['classify_name'];
+            // $db->parent_id = $res['parent_id'];
+            $a=$db->classify_pid = $data['classify_id'];
+            // var_dump($a);die;
+            $db->path=$path.'-'.$classify_id;
+            $sql = $db->save();
+            echo "<script>alert('添加成功');location.href='?r=product/product_category'</script>";
+        }
+    }
+   public function actionClassifcation_del($id){
+
+            $db = new classify;
+            $connection = Yii::$app->db;
+             //查询出当前分类数据
+            $command = $connection->createCommand("select * from classify where classify_id=$id");
+            $posts = $command->queryOne();
+            //ar_dump($posts);die;
+            $classify_id = $posts['classify_id'];
+            $dele = "classify_id=$classify_id";
+            //查询当前分类的子级数据
+            $command = $connection->createCommand("select * from classify where classify_pid=$classify_id");
+            $post = $command->queryOne();
+            $classify_pid = $post['classify_pid'];
+            $de = "classify_pid=$classify_pid";
+
+            if ($post) {
+                  echo "<script>alert('当前分类下还有子集，请先删除子集');location.replace(document.referrer);</script>";
+            } else {
+                echo $delete = $connection->createCommand()->delete('classify', $dele)->execute();
+                $this->redirect(['product/product_category']);
+            }
+    }
+
 }

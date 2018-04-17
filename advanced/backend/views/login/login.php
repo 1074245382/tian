@@ -33,12 +33,12 @@
 				<input type="text" Name="admin_name" placeholder="用户名" required="">
 				<input type="password" Name="admin_pwd" placeholder="密码" required="">
 			
-			<ul class="tick w3layouts agileits">
+			<!-- <ul class="tick w3layouts agileits">
 				<li>
 					<input type="checkbox" id="brand1" value="">
 					<label for="brand1"><span></span>记住我</label>
 				</li>
-			</ul>
+			</ul> -->
 			<div class="send-button w3layouts agileits">
 				
 					<input type="submit" value="登 录">
